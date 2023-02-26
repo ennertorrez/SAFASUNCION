@@ -226,7 +226,7 @@ public class Login extends Activity {
         lblVersion.setText("Versión " + getCurrentVersion());
         /*NO CAMBIAR ESTA DIRECCION: VERIFICA SI ES SERVIDOR DE PRUEBAS*/
 //        if (variables_publicas.direccionIp != "http://190.212.127.107:8088") {
-        if (variables_publicas.direccionIp != "http://192.168.0.7:8088") {
+        if (variables_publicas.direccionIp != "http://190.212.238.22:8088") {
             lblVersion.setText("Versión " + getCurrentVersion() + " Desarrollo");
         }
         txtPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {

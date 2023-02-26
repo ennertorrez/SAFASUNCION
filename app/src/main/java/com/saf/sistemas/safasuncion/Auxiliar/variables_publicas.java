@@ -44,7 +44,8 @@ public class variables_publicas {
 
 
     //public static final String direccionIp = "http://192.168.0.7:8088";
-    public static final String direccionIp = "http://192.168.5.234:8088";
+    //public static final String direccionIp = "http://192.168.1.87:8088";
+    public static final String direccionIp = "http://190.212.238.22:8088";
     public static final String correosErrores = "cysnicaragua@gmail.com";
     public  static final String correoError= "cysnicaragua@gmail.com";
     //Variables BD
