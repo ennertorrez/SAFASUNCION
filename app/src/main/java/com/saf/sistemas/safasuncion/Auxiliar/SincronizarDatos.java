@@ -43,7 +43,7 @@ public class SincronizarDatos {
     private String urlClientes = variables_publicas.direccionIp + "/ServicioClientes.svc/BuscarClientes";
     private String urlDptoMuniBarrios = variables_publicas.direccionIp + "/ServicioClientes.svc/ObtenerDptoMuniBarrios";
     private String urlRutas = variables_publicas.direccionIp + "/ServicioClientes.svc/GetRutas/";
-    private String urlArticulos = variables_publicas.direccionIp + "/ServicioTotalArticulos.svc/BuscarTotalArticulo";
+    private String urlArticulos = variables_publicas.direccionIp + "/ServicioTotalArticulos.svc/BuscarTotalArticulo/";
     final String urlVendedores = variables_publicas.direccionIp + "/ServicioPedidos.svc/ListaVendedores/";
     final String urlPromociones = variables_publicas.direccionIp + "/ServicioPedidos.svc/GetPromociones/";
     final String urlFormasPago = variables_publicas.direccionIp + "/ServicioPedidos.svc/FormasPago/";
@@ -131,7 +131,7 @@ public class SincronizarDatos {
 
     private boolean SincronizarArticulos() throws JSONException {
         HttpHandler shC = new HttpHandler();
-        String urlStringC = urlArticulos;
+        String urlStringC = urlArticulos + variables_publicas.rutacargada + "/" + variables_publicas.usuario.getEmpresa_ID();
         String jsonStrC = shC.makeServiceCall(urlStringC);
 
         if (jsonStrC == null) {
@@ -145,7 +145,6 @@ public class SincronizarDatos {
         JSONObject jsonObjC = new JSONObject(jsonStrC);
         // Getting JSON Array node
         JSONArray articulos = jsonObjC.getJSONArray("BuscarTotalArticuloResult");
-
 
         try {
             // looping through All Contacts

@@ -3,6 +3,7 @@ package com.saf.sistemas.safasuncion.Pedidos;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -41,7 +42,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.ScrollView;
@@ -76,6 +79,7 @@ import com.saf.sistemas.safasuncion.Entidades.Model;
 import com.saf.sistemas.safasuncion.Entidades.MyAdapter;
 import com.saf.sistemas.safasuncion.Entidades.Pedido;
 import com.saf.sistemas.safasuncion.Entidades.PedidoDetalle;
+import com.saf.sistemas.safasuncion.Entidades.Precios;
 import com.saf.sistemas.safasuncion.Entidades.TipoPrecio;
 import com.saf.sistemas.safasuncion.Entidades.Vendedor;
 import com.saf.sistemas.safasuncion.HttpHandler;
@@ -94,6 +98,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -479,8 +484,9 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                         vUnidades = Integer.parseInt(lblUM.getText().toString());
                         vCodUM = "1";
                     }else {
+                        vTipoPrecio = cliente.getTipoPrecio();
                         for (int i = 0; i < precios.size(); i++) {
-                            if (idTipo==1){
+                            /*if (idTipo==1){
                                 if ((double) Double.parseDouble(s1.toString())>=Double.parseDouble(precios.get(i).getUnidadCajaVenta3())){
                                     txtPrecioArticulo.setText(precios.get(i).getPrecio4());
                                     codTipoPrecio.setCod_Tipo_Precio("4");
@@ -516,44 +522,9 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                             }else{
                                 txtPrecioArticulo.setText(precios.get(i).getPrecio4());
                                 codTipoPrecio.setCod_Tipo_Precio("4");
-                            }
-/*
-                            if (((int) Integer.parseInt(s1.toString())>=Integer.parseInt(precios.get(i).getUnidadCajaVenta()))){
-                                if (idTipo==1){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio2());
-                                    codTipoPrecio.setCod_Tipo_Precio("2");
-                                }
-                                if (idTipo==2){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio3());
-                                    codTipoPrecio.setCod_Tipo_Precio("3");
-                                }
-                                if (idTipo==3){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio4());
-                                    codTipoPrecio.setCod_Tipo_Precio("4");
-                                }
-                                if (idTipo==4){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio4());
-                                    codTipoPrecio.setCod_Tipo_Precio("4");
-                                }
-                            }else{
-                                if (idTipo==1){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio());
-                                    codTipoPrecio.setCod_Tipo_Precio("1");
-                                }
-                                if (idTipo==2){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio2());
-                                    codTipoPrecio.setCod_Tipo_Precio("2");
-                                }
-                                if (idTipo==3){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio3());
-                                    codTipoPrecio.setCod_Tipo_Precio("3");
-                                }
-                                if (idTipo==4){
-                                    txtPrecioArticulo.setText(precios.get(i).getPrecio4());
-                                    codTipoPrecio.setCod_Tipo_Precio("4");
-                                }
                             }*/
-                            String vValorFiltro = ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,codTipoPrecio.getCod_Tipo_Precio());
+
+                            String vValorFiltro = ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,vTipoPrecio);
                             cboTPrecio.setSelection(getIndex(cboTPrecio, vValorFiltro));
                             vTipoPrecio = cboTPrecio.getSelectedItem().toString();
                         }
@@ -1868,138 +1839,133 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                     return true;
                 case R.id.Cantidad_Item:
                     final String[] result = {""};
-                    AlertDialog.Builder b = new AlertDialog.Builder(this);
-                    b.setTitle("Ingrese la Cantidad:");
-                    final EditText input = new EditText(this);
-                    input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
                     final HashMap<String, String> itemArticulo2 = listaArticulos.get(info.position);
-                    input.setText(itemArticulo2.get("Cantidad"));
-                    input.setFocusable(true);
-                    input.selectAll();
-                    input.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+
+                    LayoutInflater inflater = this.getLayoutInflater();
+                    View dialogView = null;
+                    dialogBuilder.setCancelable(false);
+                    dialogView = inflater.inflate(R.layout.cambiocantidad, null);
+                    Button btnOK = (Button) dialogView.findViewById(R.id.btnGuardar);
+                    Button btnNOK = (Button) dialogView.findViewById(R.id.btnCancelar);
+                    final Spinner cbPrecio = (Spinner) dialogView.findViewById(R.id.cboPrecio);
+                    final EditText txtCantidadNueva = (EditText) dialogView.findViewById(R.id.txtCantidad);
+                    txtCantidadNueva.setText(itemArticulo2.get("Cantidad"));
+                    txtCantidadNueva.setFocusable(true);
+                    txtCantidadNueva.selectAll();
+
+                    List<TipoPrecio> listTPrecio = TPreciosH.ObtenerTipoPrecio();
+                    ArrayAdapter<TipoPrecio> adapterTPrecio = new ArrayAdapter<TipoPrecio>(this, android.R.layout.simple_spinner_item, listTPrecio);
+                    adapterTPrecio.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    cbPrecio.setAdapter(adapterTPrecio);
+                    codTipoPrecio = listTPrecio.get(0);
+                    for (int i = 0; !(codTipoPrecio.getCod_Tipo_Precio().equals(cliente.getTipo())); i++)
+                        codTipoPrecio = listTPrecio.get(i);
+                    cbPrecio.setSelection(adapterTPrecio.getPosition(codTipoPrecio));
+
+                    cbPrecio.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            input.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    InputMethodManager inputMethodManager= (InputMethodManager) PedidosActivity.this.getSystemService(Context.INPUT_METHOD_SERVICE);
-                                    inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
-                                }
-                            });
+                        public void onItemSelected(AdapterView<?> adapter, View v, int position, long id) {
+                            // On selecting a spinner item
+                            codTipoPrecio = (TipoPrecio) adapter.getItemAtPosition(position);
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> arg0) {
                         }
                     });
-                    input.requestFocus();
-                    b.setView(input);
-                    b.setPositiveButton("OK", new DialogInterface.OnClickListener()
-                    {
+                    dialogBuilder.setView(dialogView);
+
+                    final  AlertDialog alertDialog = dialogBuilder.create();
+
+                    btnOK.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onClick(DialogInterface dialog, int whichButton)
-                        {
-                            //I get a compile error here, it wants result to be final.
-                            result[0] = input.getText().toString();
-                            if (!result[0].equalsIgnoreCase("")&&!result[0].equalsIgnoreCase("0")){
+                        public void onClick(View v) {
+                            if (txtCantidadNueva.getText().toString().equals("") || txtCantidadNueva.getText().toString().isEmpty() || txtCantidadNueva.equals("0")) {
+                                MensajeAviso("Debe ingresar un valor mayor a cero.");
+                                return;
+                            }
+                            double subtotal, iva, total, descuento, porIva;
+                            String vprecio="0";
+                            itemArticulo2.put("Cantidad", txtCantidadNueva.getText().toString());
 
-                                double subtotal, iva, total, descuento, porIva;
-                                String vprecio="0";
-                                itemArticulo2.put("Cantidad", result[0]);
-
-                                String tmpcodigoart =itemArticulo2.get("CodigoArticulo");
-                                List<Articulo> precios = TPreciosH.ObtenerPrecioPorUM(tmpcodigoart);
-                                if (precios.size()==0){
-                                    vTipoPrecio = cliente.getTipoPrecio();
-                                }else {
-                                    for (int i = 0; i < precios.size(); i++) {
-                                        if (idTipo==1){
-                                            if ((double) Double.parseDouble(result[0])>=Double.parseDouble(precios.get(i).getUnidadCajaVenta3())){
-                                                vprecio=precios.get(i).getPrecio4();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"4");
-                                            }else if  ((double) Double.parseDouble(result[0])>=Double.parseDouble(precios.get(i).getUnidadCajaVenta2())){
-                                                vprecio=precios.get(i).getPrecio3();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"3");
-                                            }else if  ((double) Double.parseDouble(result[0])>=Double.parseDouble(precios.get(i).getUnidadCajaVenta())){
-                                                vprecio=precios.get(i).getPrecio2();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"2");
-                                            }else{
-                                                vprecio=precios.get(i).getPrecio();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"1");
-                                            }
-                                        }else if (idTipo==2){
-                                            if ((double) Double.parseDouble(result[0])>=Double.parseDouble(precios.get(i).getUnidadCajaVenta3())){
-                                                vprecio=precios.get(i).getPrecio4();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"4");
-                                            }else if  ((double) Double.parseDouble(result[0])>=Double.parseDouble(precios.get(i).getUnidadCajaVenta2())){
-                                                vprecio=precios.get(i).getPrecio3();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"3");
-                                            }else {
-                                                vprecio=precios.get(i).getPrecio2();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"2");
-                                            }
-                                        }else if (idTipo==3){
-                                            if ((double) Double.parseDouble(result[0])>=Double.parseDouble(precios.get(i).getUnidadCajaVenta3())){
-                                                vprecio=precios.get(i).getPrecio4();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"4");
-                                            }else {
-                                                vprecio=precios.get(i).getPrecio3();
-                                                vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"3");
-                                            }
-                                        }else{
-                                            vprecio=precios.get(i).getPrecio4();
-                                            vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"4");
-                                        }
-
-                                    }
-                                }
-
-                                itemArticulo2.put("Precio",vprecio);
-                                itemArticulo2.put("TipoPrecio",vTipoPrecio);
-                                subtotal = Double.parseDouble(itemArticulo2.get("Precio")) * Double.parseDouble(itemArticulo2.get("Cantidad"));
-                                descuento = subtotal * (Double.parseDouble(itemArticulo2.get("PorDescuento")) / 100);
-                                subtotal = subtotal - descuento;
-
-                                if (variables_publicas.AplicaIVAGral.equalsIgnoreCase("1")){
-                                    if (cliente.getExcento().equalsIgnoreCase("1")){
-                                        porIva=0;
+                            String tmpcodigoart =itemArticulo2.get("CodigoArticulo");
+                            List<Articulo> precios = TPreciosH.ObtenerPrecioPorUM(tmpcodigoart);
+                            if (precios.size()==0){
+                                vTipoPrecio = cliente.getTipoPrecio();
+                            }else {
+                                for (int i = 0; i < precios.size(); i++) {
+                                    if (codTipoPrecio.getCod_Tipo_Precio().toString().equalsIgnoreCase("1")){
+                                        vprecio=precios.get(i).getPrecio();
+                                        vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"1");
+                                    }else if (codTipoPrecio.getCod_Tipo_Precio().toString().equalsIgnoreCase("2")){
+                                        vprecio=precios.get(i).getPrecio2();
+                                        vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"2");
+                                    }else if (codTipoPrecio.getCod_Tipo_Precio().toString().equalsIgnoreCase("3")){
+                                        vprecio=precios.get(i).getPrecio3();
+                                        vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"3");
                                     }else{
-                                        if (Double.parseDouble(articulo.getPorIva())==0){
-                                            porIva=0;
-                                        }else{
-                                            porIva=Double.parseDouble(articulo.getPorIva());
-                                        }
+                                        vprecio=precios.get(i).getPrecio4();
+                                        vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,"4");
                                     }
-                                }else{
-                                    porIva=0;
-                                }
-                                iva = subtotal * porIva;
-                                total = subtotal + iva;
-                                itemArticulo2.put("Descuento", df.format(descuento));
-                                itemArticulo2.put("PorcentajeIva",String.valueOf(porIva));
-                                itemArticulo2.put("Iva", df.format(iva));
-                                itemArticulo2.put("SubTotal", df.format(subtotal));
-                                itemArticulo2.put("Total", df.format(total));
-
-                                listaArticulos.set(info.position,itemArticulo2);
-                                adapter.notifyDataSetChanged();
-                                lv.setAdapter(adapter);
-                                RefrescarGrid();
-                                ValidarPreciosEscala();
-                                AplicarBonificacionCombinada();
-                                CalcularTotales();
-                                //RefrescarGrid();
-                                InputMethodManager inputManager = (InputMethodManager)
-                                        getSystemService(Context.INPUT_METHOD_SERVICE);
-                                View focusedView = PedidosActivity.this.getCurrentFocus();
-                                if (focusedView != null) {
-                                    inputManager.hideSoftInputFromWindow(focusedView.getWindowToken(),
-                                            InputMethodManager.HIDE_NOT_ALWAYS);
                                 }
                             }
-                            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-                            inputMethodManager.hideSoftInputFromWindow(input.getWindowToken(), 0);
+                            itemArticulo2.put("Precio",vprecio);
+                            itemArticulo2.put("TipoPrecio",vTipoPrecio);
+                            subtotal = Double.parseDouble(itemArticulo2.get("Precio")) * Double.parseDouble(itemArticulo2.get("Cantidad"));
+                            descuento = subtotal * (Double.parseDouble(itemArticulo2.get("PorDescuento")) / 100);
+                            subtotal = subtotal - descuento;
+
+                            if (variables_publicas.AplicaIVAGral.equalsIgnoreCase("1")){
+                                if (cliente.getExcento().equalsIgnoreCase("1")){
+                                    porIva=0;
+                                }else{
+                                    if (Double.parseDouble(articulo.getPorIva())==0){
+                                        porIva=0;
+                                    }else{
+                                        porIva=Double.parseDouble(articulo.getPorIva());
+                                    }
+                                }
+                            }else{
+                                porIva=0;
+                            }
+                            iva = subtotal * porIva;
+                            total = subtotal + iva;
+                            itemArticulo2.put("Descuento", df.format(descuento));
+                            itemArticulo2.put("PorcentajeIva",String.valueOf(porIva));
+                            itemArticulo2.put("Iva", df.format(iva));
+                            itemArticulo2.put("SubTotal", df.format(subtotal));
+                            itemArticulo2.put("Total", df.format(total));
+
+                            listaArticulos.set(info.position,itemArticulo2);
+                            adapter.notifyDataSetChanged();
+                            lv.setAdapter(adapter);
+                            RefrescarGrid();
+                            ValidarPreciosEscala();
+                            AplicarBonificacionCombinada();
+                            CalcularTotales();
+                            //RefrescarGrid();
+                            InputMethodManager inputManager = (InputMethodManager)
+                                    getSystemService(Context.INPUT_METHOD_SERVICE);
+                            View focusedView = PedidosActivity.this.getCurrentFocus();
+                            if (focusedView != null) {
+                                inputManager.hideSoftInputFromWindow(focusedView.getWindowToken(),
+                                        InputMethodManager.HIDE_NOT_ALWAYS);
+                            }
+                            alertDialog.dismiss();
                         }
                     });
-                    b.setNegativeButton("CANCEL", null);
-                    b.create().show();
+
+                    btnNOK.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            alertDialog.dismiss();
+                        }
+                    });
+
+
+                    alertDialog.show();
                     return  true;
                 default:
                     return super.onContextItemSelected(item);
@@ -2009,7 +1975,6 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
         }
         return false;
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
