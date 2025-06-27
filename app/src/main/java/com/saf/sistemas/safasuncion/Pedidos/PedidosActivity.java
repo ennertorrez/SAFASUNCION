@@ -417,7 +417,7 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                     if (precios.size()==0){
                         vTipoPrecio = cliente.getTipoPrecio();
                         //vUM = ClientesH.ObtenerDescripcion(variables_publicas.PRECIOS_COLUMN_UM,variables_publicas.TABLE_PRECIOS,variables_publicas.PRECIOS_COLUMN_COD_UM,codum.getCod_UM());
-                        vUnidades = Integer.parseInt(lblUM.getText().toString());
+                        vUnidades = Integer.parseInt(lblUM.getText().toString().replace("N/A","1"));
                         vCodUM = "1";
                     }else {
                         for (int i = 0; i < precios.size(); i++) {
@@ -481,7 +481,7 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                     if (precios.size()==0){
                         vTipoPrecio = cliente.getTipoPrecio();
                         //vUM = ClientesH.ObtenerDescripcion(variables_publicas.PRECIOS_COLUMN_UM,variables_publicas.TABLE_PRECIOS,variables_publicas.PRECIOS_COLUMN_COD_UM,codum.getCod_UM());
-                        vUnidades = Integer.parseInt(lblUM.getText().toString());
+                        vUnidades = Integer.parseInt(lblUM.getText().toString().replace("N/A","1"));
                         vCodUM = "1";
                     }else {
                         vTipoPrecio = cliente.getTipoPrecio();
@@ -524,7 +524,7 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                                 codTipoPrecio.setCod_Tipo_Precio("4");
                             }*/
 
-                            String vValorFiltro = ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,vTipoPrecio);
+                            String vValorFiltro = ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,cliente.getTipo());
                             cboTPrecio.setSelection(getIndex(cboTPrecio, vValorFiltro));
                             vTipoPrecio = cboTPrecio.getSelectedItem().toString();
                         }
@@ -814,126 +814,140 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
 
                     txtCodigoArticulo.setText("");
                     lblDescripcionArticulo.setText("");
-                    if (selectedItems.size()>0){
-                        if (selectedItems.size()==1){
-                            String CodigoArticulo = selectedItems.get(0).getCodigo();
-
-                            articulo = ArticulosH.BuscarArticulo(CodigoArticulo);
-
-                            txtCodigoArticulo.setText(CodigoArticulo);
-                            lblDescripcionArticulo.setText(articulo.getNombre());
-
-                            if (cliente.getTipo().equalsIgnoreCase("1")){
-                                txtPrecioArticulo.setText(articulo.getPrecio());
-                            }else if (cliente.getTipo().equalsIgnoreCase("2")){
-                                txtPrecioArticulo.setText(articulo.getPrecio2());
-                            }else if (cliente.getTipo().equalsIgnoreCase("3")){
-                                txtPrecioArticulo.setText(articulo.getPrecio3());
-                            }else {
-                                txtPrecioArticulo.setText(articulo.getPrecio4());
-                            }
-                            String vDesTPrecio= ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,cliente.getTipo());
-                            vUM=articulo.getUnidad();
-                            lblUM.setText(articulo.getUnidadCaja());
-                            lblUMV.setText(articulo.getUnidadCajaVenta());
-                            existencia = articulo.getExistencia();
-                            lblExistentias.setText(String.valueOf((int) (Double.parseDouble(existencia))));
-
-                            cboTPrecio.setSelection(getIndex(cboTPrecio, vDesTPrecio));
-
-                            MensajeCaja = true;
-                            //alertDialog.dismiss();
-                        }else{
-                            for(int indice = 0;indice<selectedItems.size();indice++)
-                            {
-                                String CodigoArticulo = selectedItems.get(indice).getCodigo();
+                    if (selectedItems!=null){
+                        if (selectedItems.size()>0){
+                            if (selectedItems.size()==1){
+                                String CodigoArticulo = selectedItems.get(0).getCodigo();
 
                                 articulo = ArticulosH.BuscarArticulo(CodigoArticulo);
 
-                                try{
-                                    boolean repetido = EsArticuloRepetido(CodigoArticulo);
-                                    if (!repetido) {
-                                        HashMap<String, String> itemPedidos = new HashMap<>();
-                                        double Precio = Double.parseDouble(articulo.getPrecio());
-                                        String DescripcionArt = articulo.getNombre();
-                                        vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,codTipoPrecio.getCod_Tipo_Precio());
-                                        itemPedidos.put("CodigoPedido", pedido.getCodigoPedido());
-                                        itemPedidos.put("CodigoArticulo", articulo.getCodigo());
-                                        itemPedidos.put("Cod", articulo.getCodigo().split("-")[articulo.getCodigo().split("-").length - 1]);
-                                        //itemPedidos.put("Cod", articulo.getCodigo());
-                                        itemPedidos.put("Cantidad", "1");
-                                        itemPedidos.put("Um", articulo.getUnidad().trim());
-                                        itemPedidos.put("Precio", String.valueOf(Precio));
-                                        itemPedidos.put("TipoPrecio", vTipoPrecio);
-                                        itemPedidos.put("Descripcion", DescripcionArt);
-                                        itemPedidos.put("CodUM", "1");
-                                        itemPedidos.put("Unidades",String.valueOf(Double.parseDouble("1")));
-                                        itemPedidos.put("Costo", String.valueOf(Double.parseDouble(articulo.getCosto())));
-                                        itemPedidos.put("PorDescuento", String.valueOf(Double.parseDouble("0")));
-                                        itemPedidos.put("PorDescuentoOriginal", String.valueOf(Double.parseDouble("0")));
-                                        itemPedidos.put("TipoArt", "P");
-                                        itemPedidos.put("BonificaA", "");
-                                        //itemPedidos.put("PorIva", articulo.getPorIva());
-                                        double subtotal, iva, total, descuento, porIva;
-                                        subtotal = Double.parseDouble(itemPedidos.get("Precio")) * Double.parseDouble(itemPedidos.get("Cantidad"));
-                                        descuento = subtotal * (Double.parseDouble(itemPedidos.get("PorDescuento")) / 100);
-                                        subtotal = subtotal - descuento;
+                                txtCodigoArticulo.setText(CodigoArticulo);
+                                lblDescripcionArticulo.setText(articulo.getNombre());
 
-                                        if (variables_publicas.AplicaIVAGral.equalsIgnoreCase("1")){
-                                            if (cliente.getExcento().equalsIgnoreCase("1")){
-                                                porIva=0;
-                                            }else{
-                                                if (Double.parseDouble(articulo.getPorIva())==0){
+                                if (cliente.getTipo().equalsIgnoreCase("1")){
+                                    txtPrecioArticulo.setText(articulo.getPrecio());
+                                }else if (cliente.getTipo().equalsIgnoreCase("2")){
+                                    txtPrecioArticulo.setText(articulo.getPrecio2());
+                                }else if (cliente.getTipo().equalsIgnoreCase("3")){
+                                    txtPrecioArticulo.setText(articulo.getPrecio3());
+                                }else {
+                                    txtPrecioArticulo.setText(articulo.getPrecio4());
+                                }
+                                String vDesTPrecio= ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,cliente.getTipo());
+                                vUM=articulo.getUnidad();
+                                lblUM.setText(articulo.getUnidadCaja());
+                                lblUMV.setText(articulo.getUnidadCajaVenta());
+                                existencia = articulo.getExistencia();
+                                lblExistentias.setText(String.valueOf((int) (Double.parseDouble(existencia))));
+
+                                cboTPrecio.setSelection(getIndex(cboTPrecio, vDesTPrecio));
+
+                                MensajeCaja = true;
+                                //alertDialog.dismiss();
+                            }else{
+                                int Total = listaArticulos.size()+selectedItems.size();
+                                int MaxSKU=0;
+                                MaxSKU= Integer.parseInt(variables_publicas.usuario.getRutaForanea()== null ? "1" :variables_publicas.usuario.getRutaForanea());
+                                if (Total>MaxSKU){
+                                    Total= Math.abs(MaxSKU-listaArticulos.size());
+                                }else{
+                                    Total=selectedItems.size();
+                                }
+                                for(int indice = 0;indice<Total;indice++)
+                                {
+                                    String CodigoArticulo = selectedItems.get(indice).getCodigo();
+
+                                    articulo = ArticulosH.BuscarArticulo(CodigoArticulo);
+
+                                    try{
+                                        boolean repetido = EsArticuloRepetido(CodigoArticulo);
+                                        if (!repetido) {
+                                            if ((listaArticulos.size()+selectedItems.size())<=40){
+
+                                            }
+                                            HashMap<String, String> itemPedidos = new HashMap<>();
+                                            double Precio = Double.parseDouble(articulo.getPrecio());
+                                            String DescripcionArt = articulo.getNombre();
+                                            vTipoPrecio=ClientesH.ObtenerDescripcion(variables_publicas.TPRECIOS_COLUMN_TIPO_PRECIO,variables_publicas.TABLE_TPRECIOS,variables_publicas.TPRECIOS_COLUMN_COD_TIPO_PRECIO,codTipoPrecio.getCod_Tipo_Precio());
+                                            itemPedidos.put("CodigoPedido", pedido.getCodigoPedido());
+                                            itemPedidos.put("CodigoArticulo", articulo.getCodigo());
+                                            itemPedidos.put("Cod", articulo.getCodigo().split("-")[articulo.getCodigo().split("-").length - 1]);
+                                            //itemPedidos.put("Cod", articulo.getCodigo());
+                                            itemPedidos.put("Cantidad", "1");
+                                            itemPedidos.put("Um", articulo.getUnidad().trim());
+                                            itemPedidos.put("Precio", String.valueOf(Precio));
+                                            itemPedidos.put("TipoPrecio", vTipoPrecio);
+                                            itemPedidos.put("Descripcion", DescripcionArt);
+                                            itemPedidos.put("CodUM", "1");
+                                            itemPedidos.put("Unidades",String.valueOf(Double.parseDouble("1")));
+                                            itemPedidos.put("Costo", String.valueOf(Double.parseDouble(articulo.getCosto())));
+                                            itemPedidos.put("PorDescuento", String.valueOf(Double.parseDouble("0")));
+                                            itemPedidos.put("PorDescuentoOriginal", String.valueOf(Double.parseDouble("0")));
+                                            itemPedidos.put("TipoArt", "P");
+                                            itemPedidos.put("BonificaA", "");
+                                            //itemPedidos.put("PorIva", articulo.getPorIva());
+                                            double subtotal, iva, total, descuento, porIva;
+                                            subtotal = Double.parseDouble(itemPedidos.get("Precio")) * Double.parseDouble(itemPedidos.get("Cantidad"));
+                                            descuento = subtotal * (Double.parseDouble(itemPedidos.get("PorDescuento")) / 100);
+                                            subtotal = subtotal - descuento;
+
+                                            if (variables_publicas.AplicaIVAGral.equalsIgnoreCase("1")){
+                                                if (cliente.getExcento().equalsIgnoreCase("1")){
                                                     porIva=0;
                                                 }else{
-                                                    porIva=Double.parseDouble(articulo.getPorIva());
+                                                    if (Double.parseDouble(articulo.getPorIva())==0){
+                                                        porIva=0;
+                                                    }else{
+                                                        porIva=Double.parseDouble(articulo.getPorIva());
+                                                    }
                                                 }
+                                            }else{
+                                                porIva=0;
                                             }
-                                        }else{
-                                            porIva=0;
+
+
+                                            //porIva = Double.parseDouble(articulo.getPorIva());
+                                            iva = subtotal * porIva;
+                                            total = subtotal + iva;
+                                            itemPedidos.put("Descuento", df.format(descuento));
+                                            itemPedidos.put("PorcentajeIva",String.valueOf(porIva));
+                                            itemPedidos.put("Iva", df.format(iva));
+                                            itemPedidos.put("SubTotal", df.format(subtotal));
+                                            itemPedidos.put("Total", df.format(total));
+                                            itemPedidos.put("IdProveedor", articulo.getIdProveedor());
+                                            itemPedidos.put("UnidadCajaVenta", articulo.getUnidadCajaVenta());
+                                            itemPedidos.put("Bodega", "01");
+                                            listaArticulos.add(itemPedidos);
+
+                                            PrecioItem = 0;
+                                            articulo = null;
+                                            //RefrescarGrid();
+                                            CalcularTotales();
                                         }
-
-
-                                        //porIva = Double.parseDouble(articulo.getPorIva());
-                                        iva = subtotal * porIva;
-                                        total = subtotal + iva;
-                                        itemPedidos.put("Descuento", df.format(descuento));
-                                        itemPedidos.put("PorcentajeIva",String.valueOf(porIva));
-                                        itemPedidos.put("Iva", df.format(iva));
-                                        itemPedidos.put("SubTotal", df.format(subtotal));
-                                        itemPedidos.put("Total", df.format(total));
-                                        itemPedidos.put("IdProveedor", articulo.getIdProveedor());
-                                        itemPedidos.put("UnidadCajaVenta", articulo.getUnidadCajaVenta());
-                                        itemPedidos.put("Bodega", "01");
-                                        listaArticulos.add(itemPedidos);
-
-                                        PrecioItem = 0;
-                                        articulo = null;
-                                        //RefrescarGrid();
-                                        CalcularTotales();
+                                    }catch (Exception e){
+                                        MensajeAviso(e.getMessage());
                                     }
-                                }catch (Exception e){
-                                    MensajeAviso(e.getMessage());
+                                    MensajeCaja = true;
                                 }
-                                MensajeCaja = true;
-                            }
 
-                            subTotalPrecioSuper = 0;
-                            for (HashMap<String, String> item : listaArticulos) {
-                                subTotalPrecioSuper += Double.parseDouble(item.get("SubTotal").replace(",", ""));
-                            }
-                            RefrescarGrid();
-                            ValidarPreciosEscala();
-                            AplicarBonificacionCombinada();
-                            RefrescarGrid();
-                            CalcularTotales();
-                            InputMethodManager inputManager = (InputMethodManager)
-                                    getSystemService(Context.INPUT_METHOD_SERVICE);
+                                subTotalPrecioSuper = 0;
+                                for (HashMap<String, String> item : listaArticulos) {
+                                    subTotalPrecioSuper += Double.parseDouble(item.get("SubTotal").replace(",", ""));
+                                }
+                                RefrescarGrid();
+                                ValidarPreciosEscala();
+                                AplicarBonificacionCombinada();
+                                RefrescarGrid();
+                                CalcularTotales();
+                                InputMethodManager inputManager = (InputMethodManager)
+                                        getSystemService(Context.INPUT_METHOD_SERVICE);
 
-                            inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
-                                    InputMethodManager.RESULT_SHOWN);
+                                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                                        InputMethodManager.RESULT_SHOWN);
+                            }
                         }
                     }
+
                     selectedItems=null;
                     break;
                 case Dialog.BUTTON_NEGATIVE:
@@ -1021,6 +1035,25 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
                     /*Si no existe lo agregamos*/
                     if (existe == false && vCantB>0) {
 
+                        int MaxSKU=0;
+                        MaxSKU= Integer.parseInt(variables_publicas.usuario.getRutaForanea()== null ? "1" :variables_publicas.usuario.getRutaForanea());
+
+                        //Validamos que solamente se puedan ingresar 40 articulos
+                        if (listaArticulos.size() >= MaxSKU) {
+
+                            /*Eliminamos el ultimo item NO BONIFICADO agregado*/
+                            HashMap<String, String> ultimoItemP = null;
+                            for (HashMap<String, String> itemsel : listaArticulos) {
+                                if (itemsel.get(variables_publicas.PEDIDOS_DETALLE_COLUMN_TipoArt).equalsIgnoreCase("P")) {
+                                    ultimoItemP = itemsel;
+                                }
+                            }
+                            if (ultimoItemP != null) {
+                                listaArticulos.remove(ultimoItemP);
+                            }
+                            MensajeAviso("No se puede agregar el producto seleccionado,ya que posee bonificacion y excede el limite de "+ String.valueOf(MaxSKU) +" productos para un pedido.");
+                            break;
+                        }
                         HashMap<String, String> articuloBonificado = new HashMap<>();
                         articuloBonificado.put("CodigoPedido", pedido.getCodigoPedido());
                         articuloBonificado.put("Cod", articuloB.getCodigo().split("-")[articuloB.getCodigo().split("-").length - 1]);
@@ -1519,8 +1552,21 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
         condicion = lstFormasPago.get(0);
         for (int i = 0; !(condicion.getCODIGO().equals(cliente.getIdFormaPago())); i++)
             condicion = lstFormasPago.get(i);
+
         cboCondicion.setSelection(adapterFormaPago.getPosition(condicion));
-        cboCondicion.setEnabled(false);
+//        cboCondicion.setEnabled(false);
+
+        cboCondicion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapter, View v, int position, long id) {
+                // On selecting a spinner item
+                condicion = (FormaPago) adapter.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+            }
+        });
     }
 
     private void GenerarCodigoPedido() {
@@ -1589,6 +1635,14 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
         double Precio = Double.parseDouble(txtPrecioArticulo.getText().toString());
         String DescripcionArt = lblDescripcionArticulo.getText().toString();
 
+        int MaxSKU=0;
+        MaxSKU= Integer.parseInt(variables_publicas.usuario.getRutaForanea()== null ? "1" :variables_publicas.usuario.getRutaForanea());
+        //Validamos que solamente se puedan ingresar 40 articulos
+        if (listaArticulos.size() >= MaxSKU ) {
+            MensajeAviso("No se puede agregar el producto seleccionado,ha alcanzado el limite de "+ String.valueOf(MaxSKU) +" productos por pedido.");
+            return false;
+        }
+
         itemPedidos.put("CodigoPedido", pedido.getCodigoPedido());
         itemPedidos.put("CodigoArticulo", articulo.getCodigo());
         //itemPedidos.put("Cod", articulo.getCodigo().split("-")[articulo.getCodigo().split("-").length - 1]);
@@ -1638,11 +1692,13 @@ public class PedidosActivity extends Activity implements ActivityCompat.OnReques
         itemPedidos.put("UnidadCajaVenta", articulo.getUnidadCajaVenta());
         itemPedidos.put("Bodega", "01");
 
-/*        //Validamos que solamente se puedan ingresar 18 articulos
-        if (listaArticulos.size() == 18 ) {
-            MensajeAviso("No se puede agregar el producto seleccionado,ya que excede el limite de 18 productos para un pedido Mayorista");
+        MaxSKU= Integer.parseInt(variables_publicas.usuario.getRutaForanea()== null ? "1" :variables_publicas.usuario.getRutaForanea());
+
+        //Validamos que solamente se puedan ingresar 40 articulos
+        if (listaArticulos.size() >= MaxSKU ) {
+            MensajeAviso("No se puede agregar el producto seleccionado,ya que excede el limite de "+ String.valueOf(MaxSKU) +" productos para un pedido.");
             return false;
-        }*/
+        }
 
         listaArticulos.add(itemPedidos);
 
